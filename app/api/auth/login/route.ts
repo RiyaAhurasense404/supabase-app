@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server'
 import { validateLogin } from '@/lib/validations/login'
 import { successResponse, errorResponse } from '@/lib/helpers/response'
 import { LoginPayload } from '@/types/auth'
+import { handleAuthError, handleServerError } from '@/lib/helpers/errors'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,7 +23,8 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      return errorResponse(error.message, {}, 400)
+      const { message, status } = handleAuthError(error)
+      return errorResponse(message, {}, status)
     }
 
     return successResponse('Login successful', { user: data.user }, 200)

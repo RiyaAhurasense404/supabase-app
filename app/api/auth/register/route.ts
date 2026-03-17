@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRegister } from '@/lib/validations/register'
 import { successResponse, errorResponse } from '@/lib/helpers/response'
 import { RegisterPayload } from '@/types/auth'
+import { handleAuthError, handleServerError } from '@/lib/helpers/errors'
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +29,8 @@ export async function POST(request: NextRequest) {
     console.log('Supabase data:', data)
 
     if (error) {
-      return errorResponse(error.message, {}, 400)
+      const { message, status } = handleAuthError(error)
+      return errorResponse(message, {}, status)
     }
 
     if (data.user?.identities?.length === 0) {
