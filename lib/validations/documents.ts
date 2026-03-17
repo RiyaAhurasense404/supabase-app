@@ -7,6 +7,10 @@ export type DocumentValidationResult = {
     'application/pdf',
     'image/jpeg',
     'image/png',
+    'image/webp',      
+    'image/heic',      
+    'image/heif',        
+    'image/gif',        
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   ]

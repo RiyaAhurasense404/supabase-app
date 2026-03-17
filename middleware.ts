@@ -27,20 +27,19 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // User ka session refresh karo
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protected routes check karo
   if (
     !user &&
-    request.nextUrl.pathname.startsWith('/dashboard') ||
-    !user &&
-    request.nextUrl.pathname.startsWith('/documents')
+    (
+      request.nextUrl.pathname.startsWith('/dashboard') ||
+      request.nextUrl.pathname.startsWith('/documents')
+    )
+
   ) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Agar logged in hai aur login/register pe jaaye
   if (
     user &&
     (request.nextUrl.pathname === '/login' ||
