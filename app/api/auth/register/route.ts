@@ -1,15 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { validateRegister } from '@/lib/validations/register'
+import { successResponse, errorResponse } from '@/lib/helpers/response'
+import { RegisterPayload } from '@/types/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, full_name } = await request.json()
+    const body: RegisterPayload = await request.json()
+    const { email, password, full_name } = body
 
-    if (!email || !password || !full_name) {
-      return NextResponse.json(
-        { error: 'Sab fields bharo' },
-        { status: 400 }
-      )
+    const validation = validateRegister(email, password, full_name)
+    if (!validation.isValid) {
+      return errorResponse('Validation failed', { errors: validation.errors }, 400)
     }
 
     const supabase = await createClient()
@@ -18,28 +20,24 @@ export async function POST(request: NextRequest) {
       email,
       password,
       options: {
-        data: {
-          full_name,
-        },
+        data: { full_name },
       },
     })
 
+    console.log('Supabase error:', error)
+    console.log('Supabase data:', data)
+
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      )
+      return errorResponse(error.message, {}, 400)
     }
 
-    return NextResponse.json(
-      { message: 'Registration successful', user: data.user },
-      { status: 201 }
-    )
+    if (data.user?.identities?.length === 0) {
+      return errorResponse('Email already registered', {}, 400)
+    }
 
-  } catch (err) {
-    return NextResponse.json(
-      { error: 'Kuch galat hua, try again' },
-      { status: 500 }
-    )
+    return successResponse('Registration successful', { user: data.user }, 201)
+
+  } catch {
+    return errorResponse('Internal server error', {}, 500)
   }
 }
