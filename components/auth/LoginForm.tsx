@@ -2,47 +2,31 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast'
+import { handleLogin } from '@/lib/services/auth'
 import { LoginPayload } from '@/types/auth'
 
-const INITIAL_STATE: LoginPayload = {
-  email: '',
-  password: '',
-}
+const INITIAL_STATE: LoginPayload = { email: '', password: '' }
 
 export default function LoginForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<LoginPayload>(INITIAL_STATE)
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        toast.error(data.message)
-        return
-      }
-
+      await handleLogin(formData)
       toast.success('Login successful!')
       router.push('/dashboard')
       router.refresh()
-
-    } catch {
-      toast.error('Something went wrong, please try again')
+    } catch (error: any) {
+      toast.error(error.message ?? 'Something went wrong')
     } finally {
       setLoading(false)
     }
@@ -52,7 +36,6 @@ export default function LoginForm() {
     <>
       <Toaster position="top-right" />
       <form onSubmit={handleSubmit}>
-
         <div>
           <label htmlFor="email">Email</label>
           <br />
@@ -67,9 +50,7 @@ export default function LoginForm() {
             required
           />
         </div>
-
         <br />
-
         <div>
           <label htmlFor="password">Password</label>
           <br />
@@ -84,17 +65,10 @@ export default function LoginForm() {
             required
           />
         </div>
-
         <br />
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
-        >
+        <button type="submit" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
-
       </form>
     </>
   )

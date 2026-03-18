@@ -2,47 +2,30 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast'
+import { handleRegister } from '@/lib/services/auth'
 import { RegisterPayload } from '@/types/auth'
 
-const INITIAL_STATE: RegisterPayload = {
-  full_name: '',
-  email: '',
-  password: '',
-}
+const INITIAL_STATE: RegisterPayload = { full_name: '', email: '', password: '' }
 
 export default function RegisterForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<RegisterPayload>(INITIAL_STATE)
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        toast.error(data.message)
-        return
-      }
-
+      await handleRegister(formData)
       toast.success('Registration successful!')
       router.push('/dashboard')
-
-    } catch {
-      toast.error('Something went wrong, please try again')
+    } catch (error: any) {
+      toast.error(error.message ?? 'Something went wrong')
     } finally {
       setLoading(false)
     }
@@ -52,7 +35,6 @@ export default function RegisterForm() {
     <>
       <Toaster position="top-right" />
       <form onSubmit={handleSubmit}>
-
         <div>
           <label htmlFor="full_name">Full Name</label>
           <br />
@@ -67,9 +49,7 @@ export default function RegisterForm() {
             required
           />
         </div>
-
         <br />
-
         <div>
           <label htmlFor="email">Email</label>
           <br />
@@ -84,9 +64,7 @@ export default function RegisterForm() {
             required
           />
         </div>
-
         <br />
-
         <div>
           <label htmlFor="password">Password</label>
           <br />
@@ -101,17 +79,10 @@ export default function RegisterForm() {
             required
           />
         </div>
-
         <br />
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
-        >
+        <button type="submit" disabled={loading}>
           {loading ? 'Registering...' : 'Register'}
         </button>
-
       </form>
     </>
   )

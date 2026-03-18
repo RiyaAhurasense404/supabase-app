@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { validateRegister } from '@/lib/validations/register'
 import { successResponse, errorResponse } from '@/lib/helpers/response'
 import { RegisterPayload } from '@/types/auth'
-import { handleAuthError, handleServerError } from '@/lib/helpers/errors'
+import { handleAuthError } from '@/lib/helpers/errors'
+import { registerQuery } from '@/lib/queries/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,18 +15,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('Validation failed', { errors: validation.errors }, 400)
     }
 
-    const supabase = await createClient()
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name },
-      },
-    })
-
-    console.log('Supabase error:', error)
-    console.log('Supabase data:', data)
+    const { data, error } = await registerQuery(email, password, full_name)
 
     if (error) {
       const { message, status } = handleAuthError(error)
@@ -38,7 +27,6 @@ export async function POST(request: NextRequest) {
     }
 
     return successResponse('Registration successful', { user: data.user }, 201)
-
   } catch {
     return errorResponse('Internal server error', {}, 500)
   }

@@ -8,10 +8,8 @@ out
 
 # Environment files (never include secrets in image!)
 .env
-.env.local
 .env.development
 .env.production
-.env*.local
 
 # Git
 .git

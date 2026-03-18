@@ -1,72 +1,41 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast'
-import { createClient } from '@/lib/supabase/client'
-import { downloadFromStorage } from '@/lib/storage/documents'
 import { Document } from '@/types/document'
+import { handleDownload, handleDelete } from '@/lib/services/documents.client'
 
 interface DocumentListProps {
   documents: Document[]
 }
 
-const supabase = createClient()
-
 export default function DocumentList({ documents }: DocumentListProps) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const handleDownload = useCallback(async (document: Document) => {
+  const onDownload = async (document: Document) => {
     try {
-      const { data, error } = await downloadFromStorage(supabase, document.file_path)
-
-      if (error || !data) {
-        toast.error(error ?? 'Download failed')
-        return
-      }
-
-      const url = URL.createObjectURL(data)
-      const link = window.document.createElement('a')
-      link.href = url
-      link.download = document.name
-      link.click()
-      URL.revokeObjectURL(url)
-
+      await handleDownload(document)
       toast.success('Document downloaded successfully!')
-
-    } catch {
-      toast.error('Something went wrong, please try again')
+    } catch (error: any) {
+      toast.error(error.message ?? 'Something went wrong')
     }
-  }, [])
+  }
 
-  const handleDelete = useCallback(async (id: string) => {
+  const onDelete = async (id: string) => {
     setDeletingId(id)
-
     try {
-      const response = await fetch(`/api/documents/delete?id=${id}`, {
-        method: 'DELETE',
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        toast.error(data.message)
-        return
-      }
-
+      await handleDelete(id)
       toast.success('Document deleted successfully!')
       router.refresh()
-
-    } catch {
-      toast.error('Something went wrong, please try again')
+    } catch (error: any) {
+      toast.error(error.message ?? 'Something went wrong')
     } finally {
       setDeletingId(null)
     }
-  }, [router])
-
-  if (documents.length === 0) {
-    return <p>No documents uploaded yet</p>
   }
+
+  if (documents.length === 0) return <p>No documents uploaded yet</p>
 
   return (
     <>
@@ -76,21 +45,10 @@ export default function DocumentList({ documents }: DocumentListProps) {
           <li key={doc.id}>
             <span>{doc.name}</span>
             <span> — {(doc.file_size / 1024).toFixed(2)} KB</span>
-
+            <button onClick={() => onDownload(doc)}>Download</button>
             <button
-              onClick={() => handleDownload(doc)}
-              style={{ cursor: 'pointer', marginLeft: '10px' }}
-            >
-              Download
-            </button>
-
-            <button
-              onClick={() => handleDelete(doc.id)}
+              onClick={() => onDelete(doc.id)}
               disabled={deletingId === doc.id}
-              style={{
-                cursor: deletingId === doc.id ? 'not-allowed' : 'pointer',
-                marginLeft: '10px'
-              }}
             >
               {deletingId === doc.id ? 'Deleting...' : 'Delete'}
             </button>

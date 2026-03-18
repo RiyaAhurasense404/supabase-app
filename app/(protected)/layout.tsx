@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/queries/auth'
 import { redirect } from 'next/navigation'
 
 export default async function ProtectedLayout({
@@ -6,17 +6,8 @@ export default async function ProtectedLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
+  const { data: user } = await getCurrentUser()
+  if (!user) redirect('/login')
 
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  return (
-    <>
-      {children}
-    </>
-  )
+  return <>{children}</>
 }

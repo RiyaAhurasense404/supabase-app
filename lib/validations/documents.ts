@@ -15,7 +15,7 @@ export type DocumentValidationResult = {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   ]
   
-  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+  const MAX_FILE_SIZE = 500 * 1024 * 1024 // 5MB
   
   export function validateDocument(file: File): DocumentValidationResult {
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -23,7 +23,7 @@ export type DocumentValidationResult = {
     }
   
     if (file.size > MAX_FILE_SIZE) {
-      return { isValid: false, error: 'File size must be less than 5MB' }
+      return { isValid: false, error: 'File size must be less than 500MB' }
     }
   
     return { isValid: true, error: null }

@@ -1,18 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import { successResponse, errorResponse } from '@/lib/helpers/response'
+import { logoutQuery } from '@/lib/queries/auth'
 
 export async function POST() {
   try {
-    const supabase = await createClient()
-
-    const { error } = await supabase.auth.signOut()
+    const { error } = await logoutQuery()
 
     if (error) {
       return errorResponse(error.message, {}, 400)
     }
 
     return successResponse('Logout successful', {}, 200)
-
   } catch {
     return errorResponse('Internal server error', {}, 500)
   }

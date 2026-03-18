@@ -1,6 +1,10 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: https://mwvcfxpcfamswxwjlwnm.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_zGkRyMV8SE5jXKP6ES619A_nEindzlj
     ports:
       - "3000:3000"
     env_file:

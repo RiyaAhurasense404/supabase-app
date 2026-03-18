@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 import { validateLogin } from '@/lib/validations/login'
 import { successResponse, errorResponse } from '@/lib/helpers/response'
 import { LoginPayload } from '@/types/auth'
-import { handleAuthError, handleServerError } from '@/lib/helpers/errors'
+import { handleAuthError } from '@/lib/helpers/errors'
+import { loginQuery } from '@/lib/queries/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,12 +15,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('Validation failed', { errors: validation.errors }, 400)
     }
 
-    const supabase = await createClient()
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const { data, error } = await loginQuery(email, password) 
 
     if (error) {
       const { message, status } = handleAuthError(error)
@@ -28,7 +23,6 @@ export async function POST(request: NextRequest) {
     }
 
     return successResponse('Login successful', { user: data.user }, 200)
-
   } catch {
     return errorResponse('Internal server error', {}, 500)
   }
